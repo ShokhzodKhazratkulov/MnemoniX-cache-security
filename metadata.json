@@ -1,0 +1,7 @@
+{
+  "name": "MnemoniX: Monetize app - cache and security on 05/14",
+  "description": "Vocabulary learning app with premium features. Optimized for Hostinger Node.js deployment with cache and sercurity",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
