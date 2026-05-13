@@ -4,6 +4,7 @@ import path from "path";
 import bodyParser from "body-parser";
 import { createClient } from "@supabase/supabase-js";
 import dotenv from "dotenv";
+import { GoogleGenAI } from "@google/genai";
 
 dotenv.config();
 
@@ -331,6 +332,33 @@ async function handleGetStatement(params: any, id: any, res: Response) {
   });
   return res.json({ jsonrpc: "2.0", id, result: { transactions: trans } });
 }
+
+app.post("/api/generate", async (req: Request, res: Response) => {
+  const rawKeys = (process.env.GEMINI_API_KEYS || "")
+    .split(",").map(k => k.trim()).filter(Boolean);
+
+  if (!rawKeys.length) {
+    return res.status(500).json({ error: "GEMINI_API_KEYS not configured on server" });
+  }
+
+  const { payload } = req.body || {};
+  if (!payload) return res.status(400).json({ error: "Missing payload" });
+
+  let lastError: any;
+  for (const apiKey of rawKeys) {
+    try {
+      const ai = new GoogleGenAI({ apiKey });
+      const response = await ai.models.generateContent(payload);
+      return res.json({ text: response.text, candidates: response.candidates });
+    } catch (err: any) {
+      lastError = err;
+      const status = err?.status || err?.error?.code;
+      if (status === 429) continue; // quota — try next key
+      return res.status(500).json({ error: err.message });
+    }
+  }
+  return res.status(429).json({ error: "All API keys exhausted", details: lastError?.message });
+});
 
 // --- Vite and SPA Fallback ---
 
