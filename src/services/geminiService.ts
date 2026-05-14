@@ -43,7 +43,7 @@ export class GeminiService {
   async checkSpelling(word: string): Promise<string> {
     try {
       const data = await callServer({
-        model: "gemini-2.5-flash",
+        model: "gemini-3-flash-preview",
         contents: `Correct the spelling of the following English word: "${word}". 
         Return ONLY the corrected word. If the word is already correct, return it as is. 
         Do not include any punctuation or explanations.`,
@@ -67,7 +67,7 @@ export class GeminiService {
   async getMnemonic(word: string, targetLanguage: Language): Promise<MnemonicResponse> {
     return withRetry(async () => {
       const payload = {
-        model: "gemini-2.5-flash",
+        model: "gemini-3-flash-preview",
         contents: `Generate a mnemonic for the English word "${word}" for a ${targetLanguage} speaker.`,
         config: {
           responseMimeType: "application/json",
@@ -230,13 +230,13 @@ CRITICAL RULES:
       : (level || 'Easy');
 
     // If history is empty, we need an initial prompt to trigger the first greeting
-    const contents = history.length > 0 ? history : [{
+      const contents = history.length > 0 ? history : [{
       role: 'user',
       parts: [{ text: `Hi! I want to practice the word "${word}". I've chosen the ${level === 'EasyToHard' ? 'Easy to Hard' : (level || 'Easy')} level. Please start the session in ${targetLanguage}.` }]
     }];
 
     const data = await callServer({
-      model: "gemini-2.5-flash",
+      model: "gemini-3-flash-preview",
       contents,
       config: {
         responseMimeType: "application/json",
@@ -274,7 +274,7 @@ CRITICAL RULES:
   async generateNuance(word: string, synonyms: string[], targetLanguage: Language): Promise<any> {
     const synonymsList = synonyms && synonyms.length > 0 ? synonyms.join(', ') : 'common synonyms';
     const data = await callServer({
-      model: "gemini-2.5-flash",
+      model: "gemini-3-flash-preview",
       contents: `Explain the nuance and usage differences between the English word "${word}" and its synonyms: ${synonymsList}. Provide the explanation for a ${targetLanguage} speaker.`,
       config: {
         responseMimeType: "application/json",
