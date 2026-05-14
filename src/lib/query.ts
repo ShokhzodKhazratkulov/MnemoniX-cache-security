@@ -32,8 +32,8 @@ export const setupPersistence = () => {
     buster: 'v6', // Increment to force clean start after potential corrupted cache
     dehydrateOptions: {
       shouldDehydrateQuery: (query) => {
-        // Do not persist profile queries to avoid stale status on boot
-        return !query.queryKey.includes('profile');
+        // Do not persist profile or posts queries to avoid stale status on boot
+        return !query.queryKey.includes('profile') && !query.queryKey.includes('posts');
       }
     }
   });

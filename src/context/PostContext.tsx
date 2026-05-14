@@ -3,7 +3,6 @@ import { Post, Language } from '../types';
 import { supabase } from '../supabaseClient';
 import { safeSetLocalStorage } from '../utils/storageUtils';
 import { useInfiniteQuery, useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
-import { useSync, SyncOperation } from './SyncContext';
 
 interface PostContextType {
   posts: Post[];
@@ -28,7 +27,6 @@ const POSTS_PER_PAGE = 20;
 
 export const PostProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const queryClient = useQueryClient();
-  const { enqueue, isOnline } = useSync();
   const [hiddenPosts, setHiddenPosts] = useState<string[]>([]);
   const [lastViewMode, setLastViewMode] = useState('all');
   const [lastLanguage, setLastLanguage] = useState(Language.UZBEK);
@@ -126,7 +124,7 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({ children
     getNextPageParam: (lastPage, allPages) => {
       return lastPage.length === POSTS_PER_PAGE ? allPages.length : undefined;
     },
-    staleTime: 1000 * 60 * 5,
+    staleTime: 0,
   });
 
   const posts = useMemo(() => {
@@ -182,15 +180,6 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const toggleLikeMutation = useMutation({
     mutationFn: async ({ postId, userId, wasLiked }: { postId: string, userId: string, wasLiked: boolean }) => {
-      if (!isOnline) {
-        if (wasLiked) {
-          await enqueue('reactions', SyncOperation.DELETE, { post_id: postId, user_id: userId, reaction_type: 'like' });
-        } else {
-          await enqueue('reactions', SyncOperation.DELETE, { post_id: postId, user_id: userId, reaction_type: 'dislike' });
-          await enqueue('reactions', SyncOperation.CREATE, { post_id: postId, user_id: userId, reaction_type: 'like' });
-        }
-        return;
-      }
       if (wasLiked) {
         await supabase.from('reactions').delete().eq('post_id', postId).eq('user_id', userId).eq('reaction_type', 'like');
       } else {
@@ -225,15 +214,6 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const toggleDislikeMutation = useMutation({
     mutationFn: async ({ postId, userId, wasDisliked }: { postId: string, userId: string, wasDisliked: boolean }) => {
-      if (!isOnline) {
-        if (wasDisliked) {
-          await enqueue('reactions', SyncOperation.DELETE, { post_id: postId, user_id: userId, reaction_type: 'dislike' });
-        } else {
-          await enqueue('reactions', SyncOperation.DELETE, { post_id: postId, user_id: userId, reaction_type: 'like' });
-          await enqueue('reactions', SyncOperation.CREATE, { post_id: postId, user_id: userId, reaction_type: 'dislike' });
-        }
-        return;
-      }
       if (wasDisliked) {
         await supabase.from('reactions').delete().eq('post_id', postId).eq('user_id', userId).eq('reaction_type', 'dislike');
       } else {
@@ -268,17 +248,6 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const toggleEmojiMutation = useMutation({
     mutationFn: async ({ postId, userId, emoji, wasSelected, prevEmoji }: { postId: string, userId: string, emoji: string, wasSelected: boolean, prevEmoji?: string }) => {
-      if (!isOnline) {
-        if (wasSelected) {
-          await enqueue('reactions', SyncOperation.DELETE, { post_id: postId, user_id: userId, reaction_type: emoji });
-        } else {
-          if (prevEmoji) {
-            await enqueue('reactions', SyncOperation.DELETE, { post_id: postId, user_id: userId, reaction_type: prevEmoji });
-          }
-          await enqueue('reactions', SyncOperation.CREATE, { post_id: postId, user_id: userId, reaction_type: emoji });
-        }
-        return;
-      }
       if (wasSelected) {
         await supabase.from('reactions').delete().eq('post_id', postId).eq('user_id', userId).eq('reaction_type', emoji);
       } else {

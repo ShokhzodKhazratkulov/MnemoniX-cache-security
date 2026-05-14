@@ -77,6 +77,6 @@ export const usePostQueries = (language: Language = Language.UZBEK) => {
   return useQuery({
     queryKey: ['posts', language],
     queryFn: () => fetchPosts({ pageParam: 0 }),
-    staleTime: 1000 * 60 * 5, // 5 min
+    staleTime: 0,
   });
 };
