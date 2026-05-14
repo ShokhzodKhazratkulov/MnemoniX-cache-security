@@ -166,6 +166,16 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
+  // Store Supabase config in IDB so service worker can use it for background sync
+  useEffect(() => {
+    import('idb-keyval').then(({ set }) => {
+      set('mnemonix_sw_config', {
+        supabaseUrl: import.meta.env.VITE_SUPABASE_URL,
+        supabaseKey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+      });
+    });
+  }, []);
+
   const triggerBackgroundSync = useCallback(async () => {
     if ('serviceWorker' in navigator && 'SyncManager' in window) {
       const reg = await navigator.serviceWorker.ready;

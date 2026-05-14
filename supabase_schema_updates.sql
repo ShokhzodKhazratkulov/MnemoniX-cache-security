@@ -195,3 +195,16 @@ END $$;
 CREATE INDEX IF NOT EXISTS idx_profiles_subscription_id ON profiles(subscription_id);
 CREATE INDEX IF NOT EXISTS idx_payments_user_id ON payments(user_id);
 CREATE INDEX IF NOT EXISTS idx_payments_status ON payments(status);
+
+-- Posts write policies (were missing — users could not create/edit/delete posts)
+DROP POLICY IF EXISTS "Users can create posts" ON posts;
+CREATE POLICY "Users can create posts" ON posts
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can edit own posts" ON posts;
+CREATE POLICY "Users can edit own posts" ON posts
+  FOR UPDATE USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can delete own posts" ON posts;
+CREATE POLICY "Users can delete own posts" ON posts
+  FOR DELETE USING (auth.uid() = user_id);

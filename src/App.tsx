@@ -36,6 +36,7 @@ import { supabase, getStorageUrl } from './services/supabase';
 import { useMonetization } from './hooks/useMonetization';
 import { decode, decodeAudioData } from './utils/audioUtils';
 import { safeSetLocalStorage } from './utils/storageUtils';
+import { queryClient } from './lib/query';
 
 // Components
 const QuickTour = React.lazy(() => import('./components/QuickTour').then(m => ({ default: m.QuickTour })));
@@ -102,6 +103,81 @@ export default function App() {
 
   // TanStack Query for User Data
   const { profile: userProfile, isProfileFetching, words: savedMnemonics, wordCount, masteredCount, refetchProfile, refetchWords } = useUserQueries(user?.id);
+
+  // PREFETCH ALL PAGE DATA AT LOGIN — so every page is instant when navigated to
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const userId = user.id;
+
+    // These run immediately in background when user logs in
+    // By the time user navigates to any page, data is already in cache
+    queryClient.prefetchQuery({
+      queryKey: ['user_words_count', userId],
+      queryFn: async () => {
+        const { count, error } = await supabase
+          .from('user_words')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', userId);
+        if (error) throw error;
+        return count ?? 0;
+      },
+    });
+
+    queryClient.prefetchQuery({
+      queryKey: ['user_words_preview', userId],
+      queryFn: async () => {
+        const { data, error } = await supabase
+          .from('user_words')
+          .select(`id, created_at, is_hard, is_mastered,
+            mnemonics (id, word, data, image_url, audio_url, language, nuance_data)`)
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false })
+          .range(0, 49);
+        if (error) throw error;
+        return data ?? [];
+      },
+    });
+
+    queryClient.prefetchQuery({
+      queryKey: ['user_words', userId],
+      queryFn: async () => {
+        let all: any[] = [];
+        let from = 0;
+        let hasMore = true;
+        while (hasMore) {
+          const { data, error } = await supabase
+            .from('user_words')
+            .select(`id, created_at, is_hard, is_mastered,
+              mnemonics (id, word, data, image_url, audio_url, language, nuance_data)`)
+            .eq('user_id', userId)
+            .order('created_at', { ascending: false })
+            .range(from, from + 999);
+          if (error) throw error;
+          const rows = data ?? [];
+          all = [...all, ...rows];
+          hasMore = rows.length === 1000;
+          from += 1000;
+        }
+        return all;
+      },
+    });
+
+    queryClient.prefetchInfiniteQuery({
+      queryKey: ['posts'],
+      queryFn: async () => {
+        const { data, error } = await supabase
+          .from('posts')
+          .select('*, profiles(username, avatar_url)')
+          .order('created_at', { ascending: false })
+          .range(0, 19);
+        if (error) throw error;
+        return { data: data ?? [], nextPage: 1 };
+      },
+      initialPageParam: 0,
+    });
+
+  }, [user?.id, queryClient]);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
