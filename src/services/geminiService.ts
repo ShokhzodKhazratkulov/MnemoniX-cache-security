@@ -43,7 +43,7 @@ export class GeminiService {
   async checkSpelling(word: string): Promise<string> {
     try {
       const data = await callServer({
-        model: "gemini-2.0-flash",
+        model: "gemini-2.5-flash",
         contents: `Correct the spelling of the following English word: "${word}". 
         Return ONLY the corrected word. If the word is already correct, return it as is. 
         Do not include any punctuation or explanations.`,
@@ -67,7 +67,7 @@ export class GeminiService {
   async getMnemonic(word: string, targetLanguage: Language): Promise<MnemonicResponse> {
     return withRetry(async () => {
       const payload = {
-        model: "gemini-2.0-flash",
+        model: "gemini-2.5-flash",
         contents: `Generate a mnemonic for the English word "${word}" for a ${targetLanguage} speaker.`,
         config: {
           responseMimeType: "application/json",
@@ -155,7 +155,7 @@ CRITICAL RULES:
   async generateImage(prompt: string): Promise<string> {
     return withRetry(async () => {
       const data = await callServer({
-        model: 'gemini-2.0-flash-preview-image-generation',
+        model: 'gemini-2.5-flash-image',
         contents: {
           parts: [{ text: `${prompt}. High-fidelity, high-contrast, cinematic lighting, no text, no labels, 4k resolution.` }],
         },
@@ -184,7 +184,7 @@ CRITICAL RULES:
   async generateTTS(text: string, targetLanguage: Language): Promise<string> {
     return withRetry(async () => {
       const data = await callServer({
-        model: "gemini-2.0-flash-preview-tts",
+        model: "gemini-2.5-flash-preview-tts",
         contents: [{ 
           parts: [{ 
             text: `Read the following text aloud. It contains English words and their explanation in ${targetLanguage}. 
@@ -236,7 +236,7 @@ CRITICAL RULES:
     }];
 
     const data = await callServer({
-      model: "gemini-2.0-flash",
+      model: "gemini-2.5-flash",
       contents,
       config: {
         responseMimeType: "application/json",
@@ -274,7 +274,7 @@ CRITICAL RULES:
   async generateNuance(word: string, synonyms: string[], targetLanguage: Language): Promise<any> {
     const synonymsList = synonyms && synonyms.length > 0 ? synonyms.join(', ') : 'common synonyms';
     const data = await callServer({
-      model: "gemini-2.0-flash",
+      model: "gemini-2.5-flash",
       contents: `Explain the nuance and usage differences between the English word "${word}" and its synonyms: ${synonymsList}. Provide the explanation for a ${targetLanguage} speaker.`,
       config: {
         responseMimeType: "application/json",
