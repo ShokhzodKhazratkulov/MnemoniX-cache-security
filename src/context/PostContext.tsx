@@ -32,6 +32,13 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [hiddenPosts, setHiddenPosts] = useState<string[]>([]);
   const [lastViewMode, setLastViewMode] = useState('all');
   const [lastLanguage, setLastLanguage] = useState(Language.UZBEK);
+  const [authUserId, setAuthUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setAuthUserId(data.session?.user?.id || null);
+    });
+  }, []);
 
   const { data: currentUser } = useQuery({
     queryKey: ['auth_user'],
@@ -114,7 +121,10 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }) as Post[];
   };
 
-  const queryKey = useMemo(() => ['posts', lastLanguage, lastViewMode, currentUser?.id || 'guest'], [lastLanguage, lastViewMode, currentUser?.id]);
+  const queryKey = useMemo(() => 
+    ['posts', lastLanguage, lastViewMode, authUserId || 'guest'], 
+    [lastLanguage, lastViewMode, authUserId]
+  );
 
   const infinitePostsQuery = useInfiniteQuery({
     queryKey,
