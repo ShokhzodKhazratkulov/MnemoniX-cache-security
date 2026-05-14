@@ -104,33 +104,6 @@ export default function App() {
   // TanStack Query for User Data
   const { profile: userProfile, isProfileFetching, words: savedMnemonics, wordCount, masteredCount, refetchProfile, refetchWords } = useUserQueries(user?.id);
 
-  // PREFETCH ALL PAGE DATA AT LOGIN — so every page is instant when navigated to
-  useEffect(() => {
-    if (!user?.id) return;
-
-    const userId = user.id;
-
-    // These run immediately in background when user logs in
-    // By the time user navigates to any page, data is already in cache
-    // Only prefetch posts — word loading is handled correctly by useUserQueries
-    // Do NOT prefetch user_words here — the raw Supabase shape doesn't match
-    // what components expect and causes TypeError: Cannot read 'toLowerCase'
-    queryClient.prefetchInfiniteQuery({
-      queryKey: ['posts', Language.UZBEK, 'all', userId],
-      queryFn: async () => {
-        const { data, error } = await supabase
-          .from('posts')
-          .select('*, profiles(username, avatar_url)')
-          .order('created_at', { ascending: false })
-          .range(0, 19);
-        if (error) throw error;
-        return { data: data ?? [], nextPage: 1 };
-      },
-      initialPageParam: 0,
-    });
-
-  }, [user?.id, queryClient]);
-
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [view]);

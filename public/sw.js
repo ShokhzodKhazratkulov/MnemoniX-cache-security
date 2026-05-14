@@ -12,6 +12,9 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
+  // ADD THIS LINE — never intercept cross-origin requests (Supabase, CDN, etc.)
+  if (url.origin !== self.location.origin) return;
+
   // Only cache GET requests for same-origin static assets
   if (event.request.method !== 'GET') return;
   if (url.pathname.startsWith('/api/')) return; // never cache API calls
