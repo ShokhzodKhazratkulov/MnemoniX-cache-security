@@ -30,5 +30,11 @@ export const setupPersistence = () => {
     persister,
     maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
     buster: 'v6', // Increment to force clean start after potential corrupted cache
+    dehydrateOptions: {
+      shouldDehydrateQuery: (query) => {
+        // Do not persist profile queries to avoid stale status on boot
+        return !query.queryKey.includes('profile');
+      }
+    }
   });
 };

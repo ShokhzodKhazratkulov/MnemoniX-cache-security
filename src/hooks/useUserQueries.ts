@@ -118,7 +118,8 @@ export const useUserQueries = (userId?: string) => {
     queryKey: ['profile', userId],
     queryFn: () => fetchProfile(userId!),
     enabled: !!userId,
-    staleTime: 1000 * 60 * 10,
+    staleTime: 0,
+    refetchOnWindowFocus: true,
   });
 
   const words = allWordsQuery.data ?? previewQuery.data ?? [];
@@ -128,6 +129,7 @@ export const useUserQueries = (userId?: string) => {
   return {
     profile: profileQuery.data,
     profileLoading: profileQuery.isLoading,
+    isProfileFetching: profileQuery.isFetching,
     words,
     wordsPreview,
     wordCount,

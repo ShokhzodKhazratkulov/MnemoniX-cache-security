@@ -41,12 +41,13 @@ interface Props {
   onLanguageChange?: (lang: Language) => void;
   language: Language;
   profile?: any;
+  isProfileFetching?: boolean;
   t: any;
   fullT: any;
   currentTier?: SubscriptionTier;
 }
 
-export const Profile = React.memo(({ user, savedMnemonics, totalWords, masteredCount, userPostCount, userRemixCount, onSignOut, onSignIn, onNavigate, onProfileUpdate, onLanguageChange, language, profile, t, fullT, currentTier = SubscriptionTier.FREE }: Props) => {
+export const Profile = React.memo(({ user, savedMnemonics, totalWords, masteredCount, userPostCount, userRemixCount, onSignOut, onSignIn, onNavigate, onProfileUpdate, onLanguageChange, language, profile, isProfileFetching, t, fullT, currentTier = SubscriptionTier.FREE }: Props) => {
   const [activeModal, setActiveModal] = useState<'none' | 'searched' | 'mastered' | 'edit'>('none');
   const [isUpdating, setIsUpdating] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
@@ -226,6 +227,10 @@ export const Profile = React.memo(({ user, savedMnemonics, totalWords, masteredC
   const isTrial = currentTier === SubscriptionTier.TRIAL;
   const isTrialExpired = !isPremium && !isTrial && trialEndsAt && trialEndsAt.getTime() < Date.now();
 
+  const handleManualRefresh = () => {
+    if (onProfileUpdate) onProfileUpdate();
+  };
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
       {/* Header Card */}
@@ -297,8 +302,17 @@ export const Profile = React.memo(({ user, savedMnemonics, totalWords, masteredC
             <div className={`p-3 rounded-2xl shrink-0 ${isPremium ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'}`}>
               {isPremium ? <Sparkles size={24} /> : <Zap size={24} />}
             </div>
-            <div className="min-w-0">
-              <p className="text-xs font-black text-gray-400 uppercase tracking-widest leading-none mb-1 truncate">{t.premium?.planType || 'PLAN TYPE'}</p>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <p className="text-xs font-black text-gray-400 uppercase tracking-widest leading-none truncate">{t.premium?.planType || 'PLAN TYPE'}</p>
+                <button 
+                  onClick={handleManualRefresh}
+                  className="p-1 text-gray-400 hover:text-accent transition-colors"
+                  title="Sync with database"
+                >
+                  <Loader2 size={12} className={isProfileFetching ? "animate-spin" : ""} />
+                </button>
+              </div>
               <h4 className="text-xl font-black truncate">{isPremium ? (t.premium?.active || 'Premium Active') : (t.premium?.freemium || 'Freemium')}</h4>
             </div>
           </div>

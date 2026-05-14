@@ -101,7 +101,7 @@ export default function App() {
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
 
   // TanStack Query for User Data
-  const { profile: userProfile, words: savedMnemonics, wordCount, masteredCount, refetchProfile, refetchWords } = useUserQueries(user?.id);
+  const { profile: userProfile, isProfileFetching, words: savedMnemonics, wordCount, masteredCount, refetchProfile, refetchWords } = useUserQueries(user?.id);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1397,6 +1397,7 @@ export default function App() {
                 language={language}
                 onLanguageChange={setLanguage}
                 profile={userProfile}
+                isProfileFetching={isProfileFetching}
                 t={t.profile}
                 fullT={t}
                 currentTier={currentTier}
