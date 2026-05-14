@@ -164,7 +164,7 @@ export default function App() {
     });
 
     queryClient.prefetchInfiniteQuery({
-      queryKey: ['posts'],
+      queryKey: ['posts', Language.UZBEK, 'all', userId],
       queryFn: async () => {
         const { data, error } = await supabase
           .from('posts')
