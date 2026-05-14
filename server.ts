@@ -151,7 +151,7 @@ async function handleCheckPerform(params: any, id: any, res: Response) {
   if (Number(payment.amount) !== Number(amount)) {
     return res.json({ 
       jsonrpc: "2.0", id, 
-      error: createError(-31050, "Incorrect amount", "Noto'g'ri summa", "Incorrect amount", "amount") 
+      error: createError(-31001, "Incorrect amount", "Noto'g'ri summa", "Incorrect amount", "amount") 
     });
   }
 
@@ -167,12 +167,20 @@ async function handleCheckPerform(params: any, id: any, res: Response) {
 }
 
 async function handleCreateTransaction(params: any, id: any, res: Response) {
-  const { id: paymeId, time, account } = params || {};
+  const { id: paymeId, time, amount, account } = params || {};
   const orderId = account?.order_id;
   if (!orderId) return res.json({ jsonrpc: "2.0", id, error: createError(-31050, "Order ID missing", "Order ID topilmadi", "Order ID missing", "order_id") });
   
   const { data: payment } = await supabase.from('payments').select('*').eq('order_id', orderId).maybeSingle();
   if (!payment) return res.json({ jsonrpc: "2.0", id, error: createError(-31050, "Order not found", "Buyurtma topilmadi", "Order not found", "order_id") });
+
+  // Validate amount
+  if (amount !== undefined && Number(payment.amount) !== Number(amount)) {
+    return res.json({ 
+      jsonrpc: "2.0", id, 
+      error: createError(-31001, "Incorrect amount", "Noto'g'ri summa", "Incorrect amount", "amount") 
+    });
+  }
 
   if (payment.payme_transaction_id === paymeId) {
     if (payment.status === 'cancelled') return res.json({ jsonrpc: "2.0", id, error: createError(-31008, "Cancelled", "Bekor qilingan", "Cancelled") });
