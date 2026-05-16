@@ -1,5 +1,5 @@
 
-import express, { Request, Response } from "express";
+import express, { Request, Response, NextFunction } from "express";
 import path from "path";
 import bodyParser from "body-parser";
 import { createClient } from "@supabase/supabase-js";
@@ -22,6 +22,19 @@ app.use(helmet({
 
 // Gzip compression — reduces bandwidth by ~70%
 app.use(compression());
+
+// Cache static assets for 1 year — browser won't re-download on repeat visits
+// This alone significantly improves mobile repeat-visit performance
+app.use((req: Request, res: Response, next: NextFunction) => {
+  if (/\.(js|css|png|jpg|jpeg|svg|woff|woff2|ttf|ico|webp)$/.test(req.url)) {
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+  } else if (req.url.startsWith('/api/')) {
+    res.setHeader('Cache-Control', 'no-store');
+  } else {
+    res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+  }
+  next();
+});
 
 // General API rate limit — 100 requests per minute per IP
 const generalLimiter = rateLimit({

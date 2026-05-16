@@ -521,7 +521,14 @@ const PostCard = React.memo(({ post, user, theme, t, language, onDelete, onEdit,
           <div className="flex items-center gap-3 min-w-0 flex-1">
             <div className="w-10 h-10 shrink-0 rounded-full bg-gradient-to-br from-accent to-accent-hover flex items-center justify-center text-white font-black text-sm overflow-hidden">
               {post.avatar_url && post.avatar_url !== "" ? (
-                <img src={post.avatar_url} alt={post.username} className="w-full h-full object-cover" />
+                <img 
+                  src={post.avatar_url} 
+                  alt={post.username} 
+                  loading="lazy"
+                  width="40"
+                  height="40"
+                  className="w-full h-full object-cover" 
+                />
               ) : (
                 post.username[0].toUpperCase()
               )}
@@ -653,6 +660,9 @@ const PostCard = React.memo(({ post, user, theme, t, language, onDelete, onEdit,
             <img 
               src={post.image_url} 
               alt={post.word}
+              loading="lazy"
+              width="600"
+              height="400"
               className={`w-full h-auto object-cover max-h-80 transition-all duration-700 ${!isImageRevealed ? 'blur-3xl scale-110' : 'blur-0 scale-100'}`}
               referrerPolicy="no-referrer"
             />

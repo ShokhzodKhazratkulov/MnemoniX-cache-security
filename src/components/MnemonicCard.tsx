@@ -288,6 +288,10 @@ export const MnemonicCard: React.FC<Props> = React.memo(({ data, imageUrl, langu
             <img 
               src={imageUrl} 
               alt={safeData.word} 
+              loading="eager"
+              fetchPriority="high"
+              width="400"
+              height="300"
               className={`w-full h-auto object-cover min-h-[300px] transition-all duration-700 ${!isImageRevealed ? 'blur-3xl scale-110' : 'blur-0 scale-100'}`} 
             />
           ) : (

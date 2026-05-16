@@ -2,9 +2,19 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>MnemoniX - Mnemonika va Ingliz Tili</title>
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    
+    <!-- Preconnect: tells browser to open connections before JS loads -->
+    <link rel="preconnect" href="https://tyvbdejhhihvgzwdpuia.supabase.co" />
+    <link rel="preconnect" href="https://storage.googleapis.com" crossorigin />
+    <link rel="dns-prefetch" href="https://generativelanguage.googleapis.com" />
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+
+    <!-- Preload the main app script for faster parse start -->
+    <link rel="modulepreload" href="/src/main.tsx" />
+    
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" sizes="any">
 </head>
 <body>
     <div id="root"></div>
