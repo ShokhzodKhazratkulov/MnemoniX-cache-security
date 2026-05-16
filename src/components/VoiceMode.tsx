@@ -166,11 +166,16 @@ export const VoiceMode = React.memo(({ onClose, uiLanguage, contentLanguage }: P
 
   useEffect(() => {
     mountedRef.current = true;
-    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
     let sessionPromise: Promise<any>;
 
+    // API key is managed server-side. Fetch a short-lived session token instead.
     const startSession = async () => {
       try {
+        const tokenRes = await fetch('/api/voice-token', { method: 'POST' });
+        if (!tokenRes.ok) throw new Error('Could not initialize voice session');
+        const { apiKey } = await tokenRes.json();
+        const ai = new GoogleGenAI({ apiKey });
+
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         if (!mountedRef.current) {
           stream.getTracks().forEach(t => t.stop());

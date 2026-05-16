@@ -372,6 +372,14 @@ async function handleGetStatement(params: any, id: any, res: Response) {
   return res.json({ jsonrpc: "2.0", id, result: { transactions: trans } });
 }
 
+app.post('/api/voice-token', generalLimiter, (req: Request, res: Response) => {
+  const keys = (process.env.GEMINI_API_KEYS || '').split(',').map(k => k.trim()).filter(Boolean);
+  if (!keys.length) return res.status(500).json({ error: 'No API keys configured' });
+  // Return a random key from the pool for load distribution
+  const apiKey = keys[Math.floor(Math.random() * keys.length)];
+  return res.json({ apiKey });
+});
+
 app.post("/api/generate", aiLimiter, async (req: Request, res: Response) => {
   const rawKeys = (process.env.GEMINI_API_KEYS || "")
     .split(",").map(k => k.trim()).filter(Boolean);
