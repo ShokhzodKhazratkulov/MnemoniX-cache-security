@@ -43,6 +43,11 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const from = pageParam * POSTS_PER_PAGE;
     const to = from + POSTS_PER_PAGE - 1;
 
+    // Build select — only join reactions if we have a real user ID
+    const reactionSelect = currentUser?.id 
+      ? `, user_reaction:reactions(reaction_type)` 
+      : '';
+
     let query = supabase
       .from('posts')
       .select(`
@@ -52,13 +57,15 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({ children
         parent:parent_post_id (
           user_id,
           profiles:user_id (username, full_name, avatar_url)
-        ),
-        user_reaction:reactions(reaction_type)
+        )${reactionSelect}
       `)
-      .eq('language', lastLanguage)
-      .eq('reactions.user_id', currentUser?.id || '')
-      .order('created_at', { ascending: false })
-      .range(from, to);
+      .eq('language', lastLanguage);
+
+    if (currentUser?.id) {
+      query = query.eq('reactions.user_id', currentUser.id);
+    }
+
+    query = query.order('created_at', { ascending: false }).range(from, to);
 
     const { data: postsData, error: postsError } = await query;
     if (postsError) throw postsError;
