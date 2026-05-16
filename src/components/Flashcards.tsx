@@ -536,14 +536,33 @@ export const Flashcards = React.memo(({
             <button 
               disabled={filtered.length === 0 || isDownloading}
               onClick={handleDownloadPDF}
-              className="w-full py-6 sm:py-8 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-800 text-white rounded-2xl sm:rounded-[2rem] font-black text-xl sm:text-3xl shadow-2xl shadow-emerald-500/20 transition-all active:scale-95 transform hover:-translate-y-1 flex items-center justify-center gap-3"
+              className="w-full h-20 sm:h-24 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-800 text-white rounded-2xl sm:rounded-[2rem] font-black text-xl sm:text-3xl shadow-2xl shadow-emerald-500/20 transition-all active:scale-95 transform hover:-translate-y-1 flex items-center justify-center gap-3"
             >
-              {isDownloading ? (
-                <div className="w-8 h-8 border-4 border-white/30 border-t-white animate-spin rounded-full" />
-              ) : (
-                <Download size={24} />
-              )}
-              {isDownloading ? '...' : t.download}
+              <AnimatePresence mode="wait">
+                {isDownloading ? (
+                  <motion.div
+                    key="loading"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    className="flex items-center gap-3"
+                  >
+                    <div className="w-8 h-8 border-4 border-white/30 border-t-white animate-spin rounded-full" />
+                    <span className="text-white/80 text-lg sm:text-xl font-bold animate-pulse">Generating...</span>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="button"
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -5 }}
+                    className="flex items-center gap-3"
+                  >
+                    <Download size={24} />
+                    <span>{t.download}</span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </button>
           </div>
         </div>
