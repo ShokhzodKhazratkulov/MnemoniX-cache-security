@@ -493,10 +493,12 @@ const PostCard = React.memo(({ post, user, theme, t, language, onDelete, onEdit,
   const [showMenu, setShowMenu] = useState(false);
 
   const handleLike = () => {
+    setSelectedReaction(prev => prev === 'like' ? null : 'like');
     toggleLike(post.id, user?.id || 'guest');
   };
 
   const handleDislike = () => {
+    setSelectedReaction(prev => prev === 'dislike' ? null : 'dislike');
     toggleDislike(post.id, user?.id || 'guest');
   };
 
@@ -677,16 +679,16 @@ const PostCard = React.memo(({ post, user, theme, t, language, onDelete, onEdit,
           <div className="flex items-center gap-6">
             <button 
               onClick={handleLike}
-              className={`flex items-center gap-1.5 text-sm font-bold transition-colors ${post.user_liked ? 'text-red-500' : 'text-gray-400 hover:text-gray-600'}`}
+              className={`flex items-center gap-1.5 text-sm font-bold transition-colors ${(post.user_liked || selectedReaction === 'like') ? 'text-red-500' : 'text-gray-400 hover:text-gray-600'}`}
             >
-              <Heart size={18} fill={post.user_liked ? "currentColor" : "none"} />
+              <Heart size={18} fill={(post.user_liked || selectedReaction === 'like') ? "currentColor" : "none"} />
               <span className="text-accent">{post.likes_count}</span>
             </button>
             <button 
               onClick={handleDislike}
-              className={`flex items-center gap-1.5 text-sm font-bold transition-colors ${post.user_disliked ? 'text-accent' : 'text-gray-400 hover:text-gray-600'}`}
+              className={`flex items-center gap-1.5 text-sm font-bold transition-colors ${(post.user_disliked || selectedReaction === 'dislike') ? 'text-accent' : 'text-gray-400 hover:text-gray-600'}`}
             >
-              <ThumbsDown size={18} fill={post.user_disliked ? "currentColor" : "none"} />
+              <ThumbsDown size={18} fill={(post.user_disliked || selectedReaction === 'dislike') ? "currentColor" : "none"} />
               <span className="text-accent">{post.dislikes_count}</span>
             </button>
             {onRemix && !isOwner && (
