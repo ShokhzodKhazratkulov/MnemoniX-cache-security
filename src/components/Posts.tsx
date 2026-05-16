@@ -505,6 +505,7 @@ const PostCard = React.memo(({ post, user, theme, t, language, onDelete, onEdit,
   };
 
   const isOwner = user?.id === post.user_id;
+  const [selectedReaction, setSelectedReaction] = useState(post.userReaction || null);
 
   return (
     <motion.div 

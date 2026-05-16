@@ -58,6 +58,9 @@ const SubscriptionPage = React.lazy(() => import('./components/SubscriptionPage'
 const PrivacyPolicy = React.lazy(() => import('./components/PrivacyPolicy').then(m => ({ default: m.PrivacyPolicy })));
 const TermsOfService = React.lazy(() => import('./components/TermsOfService').then(m => ({ default: m.TermsOfService })));
 
+import { ErrorToast } from './components/ErrorToast';
+import { useErrorToast } from './hooks/useErrorToast';
+
 import { TRANSLATIONS } from './constants/translations';
 import { Profile as UserProfileType } from './types';
 import { useUserQueries } from './hooks/useUserQueries';
@@ -70,6 +73,7 @@ import { useSync, SyncOperation } from './context/SyncContext';
 export default function App() {
   const queryClient = useQueryClient();
   const { enqueue, isOnline } = useSync();
+  const { toast, showError, dismiss } = useErrorToast();
   // Authentication & User State
   const [user, setUser] = useState<any>(null); // Current Supabase Auth user object
   const [isGuest, setIsGuest] = useState(true); // Toggle for authenticated vs guest sessions
@@ -199,7 +203,7 @@ export default function App() {
         sourceRef.current = source;
       }
     } catch (error) {
-      console.error("Audio error:", error);
+      showError(error);
     } finally {
       setIsAudioLoading(false);
     }
@@ -229,6 +233,14 @@ export default function App() {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      showError((e as CustomEvent).detail);
+    };
+    window.addEventListener('mnemonix:error', handler);
+    return () => window.removeEventListener('mnemonix:error', handler);
+  }, [showError]);
 
   // Force sign-in for unauthenticated users
   useEffect(() => {
@@ -781,6 +793,7 @@ export default function App() {
       } else {
         setError(msg || t.errorGeneral);
       }
+      showError(err);
       setState(AppState.ERROR);
     }
   };
@@ -837,7 +850,7 @@ export default function App() {
       queryClient.invalidateQueries({ queryKey: ['posts'] });
       setView(AppView.POSTS);
     } catch (err) {
-      console.error('Error sharing mnemonic:', err);
+      showError(err);
     }
   };
 
@@ -926,7 +939,7 @@ export default function App() {
         }
       }
     } catch (err) {
-      console.error("Save error:", err);
+      showError(err);
     }
   };
 
@@ -1690,6 +1703,13 @@ export default function App() {
           )}
         </AnimatePresence>
       </React.Suspense>
+      {toast && (
+        <ErrorToast
+          message={toast.message}
+          secondsRemaining={toast.secondsRemaining}
+          onDismiss={dismiss}
+        />
+      )}
     </div>
   );
 }

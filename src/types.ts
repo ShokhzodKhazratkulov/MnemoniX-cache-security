@@ -147,6 +147,7 @@ export interface Post {
   user_emoji?: string;
   impression_emojis: { emoji: string; count: number }[];
   is_updated?: boolean;
+  userReaction?: string | null;
 }
 
 declare global {

@@ -52,28 +52,19 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({ children
         parent:parent_post_id (
           user_id,
           profiles:user_id (username, full_name, avatar_url)
-        )
+        ),
+        user_reaction:reactions(reaction_type)
       `)
       .eq('language', lastLanguage)
+      .eq('reactions.user_id', currentUser?.id || '')
       .order('created_at', { ascending: false })
       .range(from, to);
 
     const { data: postsData, error: postsError } = await query;
     if (postsError) throw postsError;
 
-    let userReactions: any[] = [];
-    if (currentUser?.id && postsData && postsData.length > 0) {
-      const { data: reactionsData } = await supabase
-        .from('reactions')
-        .select('post_id, reaction_type')
-        .eq('user_id', currentUser.id)
-        .in('post_id', postsData.map(p => p.id));
-      
-      if (reactionsData) userReactions = reactionsData;
-    }
-
     return postsData.map((p: any) => {
-      const postReactions = userReactions.filter(r => r.post_id === p.id);
+      const postReactions = (p.user_reaction as any[]) || [];
       const user_liked = postReactions.some(r => r.reaction_type === 'like');
       const user_disliked = postReactions.some(r => r.reaction_type === 'dislike');
       const user_emoji = postReactions.find(r => !['like', 'dislike'].includes(r.reaction_type))?.reaction_type;
@@ -107,7 +98,8 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({ children
         user_disliked,
         user_emoji,
         impression_emojis,
-        is_updated: p.is_updated
+        is_updated: p.is_updated,
+        userReaction: postReactions[0]?.reaction_type || null,
       };
     }) as Post[];
   };

@@ -9,7 +9,12 @@ async function callServer(payload: object): Promise<{ text?: string; candidates?
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err.error || `Server error ${res.status}`);
+    const error = Object.assign(new Error(err.error || `Server error ${res.status}`), {
+      status: res.status,
+    });
+    // Dispatch so App.tsx can show the toast without prop drilling
+    window.dispatchEvent(new CustomEvent('mnemonix:error', { detail: error }));
+    throw error;
   }
   return res.json();
 }
