@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx server.ts",
     "start": "NODE_ENV=production node server.js",
-    "build": "vite build && esbuild server.ts --bundle --platform=node --format=esm --outfile=server.js --external:vite --external:express --external:dotenv --external:body-parser --external:@supabase/supabase-js --external:@google/genai",
+    "build": "vite build && esbuild server.ts --bundle --platform=node --format=esm --outfile=server.js --external:vite --external:express --external:dotenv --external:body-parser --external:@supabase/supabase-js --external:@google/genai --external:express-rate-limit --external:compression --external:helmet",
     "preview": "vite preview",
     "lint": "tsc --noEmit"
   },
@@ -21,7 +21,10 @@
     "@tanstack/react-query-persist-client": "^5.100.10",
     "body-parser": "^2.2.2",
     "browser-image-compression": "^2.0.2",
+    "compression": "^1.8.1",
     "express": "^5.2.1",
+    "express-rate-limit": "^8.5.2",
+    "helmet": "^8.1.0",
     "idb-keyval": "^6.2.2",
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.7",
@@ -35,11 +38,12 @@
   "devDependencies": {
     "@tailwindcss/vite": "^4.2.1",
     "@types/body-parser": "^1.19.6",
+    "@types/compression": "^1.8.1",
     "@types/express": "^5.0.6",
+    "@types/helmet": "^0.0.48",
     "@types/node": "^22.14.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
-    "@vercel/node": "^5.7.15",
     "@vitejs/plugin-react": "^5.0.0",
     "dotenv": "^17.4.2",
     "esbuild": "^0.28.0",

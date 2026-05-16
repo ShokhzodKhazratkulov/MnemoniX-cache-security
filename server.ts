@@ -5,11 +5,42 @@ import bodyParser from "body-parser";
 import { createClient } from "@supabase/supabase-js";
 import dotenv from "dotenv";
 import { GoogleGenAI } from "@google/genai";
+import rateLimit from 'express-rate-limit';
+import compression from 'compression';
+import helmet from 'helmet';
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Security headers
+app.use(helmet({
+  contentSecurityPolicy: false, // disable CSP for now — add later once tested
+  crossOriginEmbedderPolicy: false,
+}));
+
+// Gzip compression — reduces bandwidth by ~70%
+app.use(compression());
+
+// General API rate limit — 100 requests per minute per IP
+const generalLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests. Please slow down.' },
+});
+app.use('/api/', generalLimiter);
+
+// Strict rate limit for Gemini AI endpoint — max 10 AI calls per minute per IP
+const aiLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'AI generation limit reached. Please wait a moment.' },
+});
 
 // Initialize Supabase Admin client
 const supabase = createClient(
@@ -341,7 +372,7 @@ async function handleGetStatement(params: any, id: any, res: Response) {
   return res.json({ jsonrpc: "2.0", id, result: { transactions: trans } });
 }
 
-app.post("/api/generate", async (req: Request, res: Response) => {
+app.post("/api/generate", aiLimiter, async (req: Request, res: Response) => {
   const rawKeys = (process.env.GEMINI_API_KEYS || "")
     .split(",").map(k => k.trim()).filter(Boolean);
 
@@ -352,20 +383,36 @@ app.post("/api/generate", async (req: Request, res: Response) => {
   const { payload } = req.body || {};
   if (!payload) return res.status(400).json({ error: "Missing payload" });
 
-  let lastError: any;
-  for (const apiKey of rawKeys) {
-    try {
-      const ai = new GoogleGenAI({ apiKey });
-      const response = await ai.models.generateContent(payload);
-      return res.json({ text: response.text, candidates: response.candidates });
-    } catch (err: any) {
-      lastError = err;
-      const status = err?.status || err?.error?.code;
-      if (status === 429) continue; // quota — try next key
-      return res.status(500).json({ error: err.message });
+  const TIMEOUT_MS = 55000; // 55 seconds (Gemini can be slow for image/TTS)
+  const timeoutPromise = new Promise<never>((_, reject) =>
+    setTimeout(() => reject(new Error('Request timeout')), TIMEOUT_MS)
+  );
+
+  try {
+    await Promise.race([
+      (async () => {
+        let lastError: any;
+        for (const apiKey of rawKeys) {
+          try {
+            const ai = new GoogleGenAI({ apiKey });
+            const response = await ai.models.generateContent(payload);
+            return res.json({ text: response.text, candidates: response.candidates });
+          } catch (err: any) {
+            lastError = err;
+            const status = err?.status || err?.error?.code;
+            if (status === 429) continue;
+            return res.status(500).json({ error: err.message });
+          }
+        }
+        return res.status(429).json({ error: 'All API keys exhausted', details: lastError?.message });
+      })(),
+      timeoutPromise,
+    ]);
+  } catch (err: any) {
+    if (!res.headersSent) {
+      res.status(504).json({ error: err.message || 'Gateway timeout' });
     }
   }
-  return res.status(429).json({ error: "All API keys exhausted", details: lastError?.message });
 });
 
 // --- Vite and SPA Fallback ---

@@ -40,7 +40,16 @@ export class ErrorBoundary extends Component<Props, State> {
               </p>
             </div>
             <button 
-              onClick={() => window.location.reload()}
+              onClick={async () => {
+                try {
+                  // Clear potentially corrupted IndexedDB cache before reload
+                  const { del } = await import('idb-keyval');
+                  await del('REACT_QUERY_OFFLINE_CACHE');
+                } catch (e) {
+                  // ignore — just reload anyway
+                }
+                window.location.reload();
+              }}
               className="w-full py-4 bg-accent text-white rounded-2xl font-black text-lg shadow-xl shadow-accent/20 dark:shadow-none hover:bg-accent-hover transition-all active:scale-95"
             >
               Reload Application
