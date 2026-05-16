@@ -31,7 +31,7 @@ import {
 
 import { Language, AppState, AppView, MnemonicResponse, SavedMnemonic, Post, AppTheme, SubscriptionTier } from './types';
 import { GeminiService } from './services/geminiService';
-import { usePosts } from './context/PostContext';
+import { PostProvider, usePosts } from './context/PostContext';
 import { supabase, getStorageUrl } from './services/supabase';
 import { useMonetization } from './hooks/useMonetization';
 import { decode, decodeAudioData } from './utils/audioUtils';
@@ -1040,7 +1040,8 @@ export default function App() {
   }
 
   return (
-    <div className={`${view === AppView.AUTH ? 'h-screen overflow-hidden' : 'min-h-screen'} bg-neutral dark:bg-primary transition-colors duration-500 font-sans selection:bg-accent/10 selection:text-accent`}>
+    <PostProvider>
+      <div className={`${view === AppView.AUTH ? 'h-screen overflow-hidden' : 'min-h-screen'} bg-neutral dark:bg-primary transition-colors duration-500 font-sans selection:bg-accent/10 selection:text-accent`}>
       {/* Navigation Bar */}
       {view !== AppView.AUTH && (
         <nav className="sticky top-0 z-50 px-4 py-4 sm:py-6 bg-transparent">
@@ -1710,6 +1711,7 @@ export default function App() {
           onDismiss={dismiss}
         />
       )}
-    </div>
+      </div>
+    </PostProvider>
   );
 }

@@ -116,7 +116,7 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({ children
     getNextPageParam: (lastPage, allPages) => {
       return lastPage.length === POSTS_PER_PAGE ? allPages.length : undefined;
     },
-    staleTime: 0,
+    staleTime: 1000 * 60 * 2, // 2 minutes — serve from cache, revalidate in background
   });
 
   const posts = useMemo(() => {
