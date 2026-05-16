@@ -83,7 +83,8 @@ export function useMonetization(profile: Profile | null | undefined) {
   const incrementSearchCount = async () => {
     if (!profile || isPremium) return true;
 
-    const today = new Date().toISOString().split('T')[0];
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
     let newCount = profile.daily_search_count;
 
     if (profile.last_search_reset !== today) {
@@ -108,6 +109,14 @@ export function useMonetization(profile: Profile | null | undefined) {
     return true;
   };
 
+  const effectiveSearchCount = useMemo(() => {
+    if (!profile) return 0;
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    if (profile.last_search_reset !== today) return 0;
+    return profile.daily_search_count;
+  }, [profile]);
+
   return {
     currentTier,
     isPremium,
@@ -115,6 +124,6 @@ export function useMonetization(profile: Profile | null | undefined) {
     verifyDevice,
     resetDevice,
     incrementSearchCount,
-    searchRemaining: isPremium ? Infinity : Math.max(0, 5 - (profile?.daily_search_count || 0))
+    searchRemaining: isPremium ? Infinity : Math.max(0, 5 - effectiveSearchCount)
   };
 }
